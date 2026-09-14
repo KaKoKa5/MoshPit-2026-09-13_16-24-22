@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace GamePlay
+namespace GamePlay.Card
 {
     [CreateAssetMenu(fileName = "CardInfoData", menuName = "CardInfoData")]
     public class CardInfoData : ScriptableObject
