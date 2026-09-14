@@ -5,64 +5,57 @@ namespace Core.Scripts
 {
 	public struct DuelResult
 	{
-		public float DamageDealt;
-		public float DamageTaken;
-		public float DamageAbsorbed;
-		public bool IsPerfectFit;
+		public float damageDealt;
+		public float damageTaken;
+		public float damageAbsorbed;
+		public bool isPerfectFit;
 	}
 
 	public class ScoreManager
 	{
-		public float PlayerHP { get; private set; }
-		public float PlayerMaxHP { get; private set; }
-		public float EnemyHP { get; private set; }
-		public float EnemyMaxHP { get; private set; }
+		public float PlayerHp { get; private set; }
+		public float PlayerMaxHp { get; private set; }
+		public float EnemyHp { get; private set; }
+		public float EnemyMaxHp { get; private set; }
 
-		public float CurrentTurnScore { get; private set; }
+		private float currentTurnScore;
 		public float SongTotalScore { get; private set; }
 		public float ScoreQuota { get; private set; }
 
-		public event Action<float> OnPlayerHPChanged;
-		public event Action<float> OnEnemyHPChanged;
+		public float CurrentMultiplier { get; private set; } = 1f;
+		
+		public event Action<float> OnPlayerHpChanged;
+		public event Action<float> OnEnemyHpChanged;
 		public event Action<float> OnTurnScoreChanged;
 		public event Action<float> OnSongScoreChanged;
 		public event Action OnQuotaReached;
 		public event Action OnPlayerDefeated;
 
-		private bool _quotaAlreadyNotified;
-		private bool _defeatAlreadyNotified;
+		private bool quotaAlreadyNotified;
+		private bool defeatAlreadyNotified;
 
-		public ScoreManager(float playerMaxHP, float enemyMaxHP, float scoreQuota)
+		public ScoreManager(float playerMaxHp, float enemyMaxHp, float scoreQuota)
 		{
-			PlayerMaxHP = playerMaxHP;
-			EnemyMaxHP = enemyMaxHP;
-			PlayerHP = playerMaxHP;
-			EnemyHP = enemyMaxHP;
+			PlayerMaxHp = playerMaxHp;
+			EnemyMaxHp = enemyMaxHp;
+			PlayerHp = playerMaxHp;
+			EnemyHp = enemyMaxHp;
 			ScoreQuota = scoreQuota;
 
-			CurrentTurnScore = 0f;
+			currentTurnScore = 0f;
 			SongTotalScore = 0f;
 		}
 
 		public void StartNewTurn()
 		{
-			CurrentTurnScore = 0f;
+			currentTurnScore = 0f;
 		}
 		
 		public DuelResult ResolveParadeDuel(float enemyAttackValue, float playerParadeValue, float playerDamageDealt)
 		{
-			float damageAbsorbed = ChaosCalculator.CalculateParade(
-				enemyAttackValue, playerParadeValue,
-				out bool isPerfectFit,
-				out float damageRemaining);
+			float damageAbsorbed = ChaosCalculator.CalculateParade(enemyAttackValue, playerParadeValue, out bool isPerfectFit, out float damageRemaining);
 
-			var result = new DuelResult
-			{
-				DamageDealt = playerDamageDealt,
-				DamageTaken = damageRemaining,
-				DamageAbsorbed = damageAbsorbed,
-				IsPerfectFit = isPerfectFit
-			};
+			var result = new DuelResult { damageDealt = playerDamageDealt, damageTaken = damageRemaining, damageAbsorbed = damageAbsorbed, isPerfectFit = isPerfectFit };
 
 			ApplyDuelResult(in result);
 			return result;
@@ -70,13 +63,7 @@ namespace Core.Scripts
 
 		public DuelResult ResolveAttackDuel(float playerDamageDealt, float enemyDamageDealt)
 		{
-			var result = new DuelResult
-			{
-				DamageDealt = playerDamageDealt,
-				DamageTaken = enemyDamageDealt,
-				DamageAbsorbed = 0f,
-				IsPerfectFit = false
-			};
+			var result = new DuelResult { damageDealt = playerDamageDealt, damageTaken = enemyDamageDealt, damageAbsorbed = 0f, isPerfectFit = false };
 
 			ApplyDuelResult(in result);
 			return result;
@@ -84,24 +71,43 @@ namespace Core.Scripts
 
 		private void ApplyDuelResult(in DuelResult result)
 		{
-			if (result.DamageDealt > 0f)
+			if (result.damageDealt > 0f)
 			{
-				EnemyHP = Mathf.Max(0f, EnemyHP - result.DamageDealt);
-				OnEnemyHPChanged?.Invoke(EnemyHP);
+				EnemyHp = Mathf.Max(0f, EnemyHp - result.damageDealt);
+				OnEnemyHpChanged?.Invoke(EnemyHp);
 			}
 
-			if (result.DamageTaken > 0f)
+			if (result.damageTaken > 0f)
 			{
-				PlayerHP = Mathf.Max(0f, PlayerHP - result.DamageTaken);
-				OnPlayerHPChanged?.Invoke(PlayerHP);
+				PlayerHp = Mathf.Max(0f, PlayerHp - result.damageTaken);
+				OnPlayerHpChanged?.Invoke(PlayerHp);
 			}
-			
-			float rawPoints = result.DamageDealt + result.DamageTaken;
-			CurrentTurnScore += rawPoints;
-			SongTotalScore += rawPoints;
 
-			OnTurnScoreChanged?.Invoke(CurrentTurnScore);
+			float totalTurnMultiplier = CurrentMultiplier + result.damageAbsorbed;
+			float duelScore = ChaosCalculator.ChaosValue(result.damageDealt, result.damageTaken, result.damageAbsorbed ,totalTurnMultiplier);
+
+			currentTurnScore += duelScore;
+			SongTotalScore += duelScore;
+
+			OnTurnScoreChanged?.Invoke(currentTurnScore);
 			OnSongScoreChanged?.Invoke(SongTotalScore);
+
+			CheckGameState();
+		}
+
+		private void CheckGameState()
+		{
+			if (!defeatAlreadyNotified && PlayerHp <= 0f)
+			{
+				defeatAlreadyNotified = true;
+				OnPlayerDefeated?.Invoke();
+			}
+
+			if (!quotaAlreadyNotified && SongTotalScore >= ScoreQuota)
+			{
+				quotaAlreadyNotified = true;
+				OnQuotaReached?.Invoke();
+			}
 		}
 	}
 }
