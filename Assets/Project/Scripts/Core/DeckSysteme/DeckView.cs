@@ -31,8 +31,8 @@ namespace Core.DeckSysteme
 		{
 			int remaining = deck.Cards.Count;
 
-			countText.text = remaining.ToString();
-			cardBackImage.enabled = remaining > 0; // masque le dos de carte si le deck est vide
+			countText.text = remaining.ToString() + "/" + GameMetrix.Instance.InitialPoolSize;
+			cardBackImage.enabled = remaining > 0; 
 		}
 	}
 }

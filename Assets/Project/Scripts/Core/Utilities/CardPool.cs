@@ -19,7 +19,7 @@ namespace Core.Utilities
 		protected override void Awake()
 		{
 			base.Awake();
-			Prewarm(GameMetrix.InitialPoolSize);
+			Prewarm(GameMetrix.Instance.InitialPoolSize);
 		}
 
 		private void Prewarm(int count)

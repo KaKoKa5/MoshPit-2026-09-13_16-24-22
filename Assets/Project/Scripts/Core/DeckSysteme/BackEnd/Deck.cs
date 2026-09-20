@@ -36,6 +36,7 @@ namespace Core.DeckSysteme.BackEnd
 
 			CardInfoData topCard = Cards[0];
 			Cards.RemoveAt(0);
+			DeckChanged?.Invoke();
 			return topCard;
 		}
 

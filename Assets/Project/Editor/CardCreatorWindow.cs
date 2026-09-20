@@ -118,6 +118,11 @@ namespace Core.EditorTools
 
         private void OnGUI()
         {
+            if (_editableCard == null || _serializedCard == null || _serializedCard.targetObject == null)
+            {
+	            CreateNewCardInstance();
+            }
+
             InitStyles();
 
             // Fond global
@@ -125,6 +130,7 @@ namespace Core.EditorTools
 
             DrawHeader();
             DrawSeparator();
+            
 
             EditorGUILayout.Space(4);
 
