@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GamePlay.Card;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Core.DeckSysteme.BackEnd
@@ -37,6 +38,7 @@ namespace Core.DeckSysteme.BackEnd
 			CardInfoData topCard = Cards[0];
 			Cards.RemoveAt(0);
 			DeckChanged?.Invoke();
+			Debug.Log(Cards.Count);
 			return topCard;
 		}
 

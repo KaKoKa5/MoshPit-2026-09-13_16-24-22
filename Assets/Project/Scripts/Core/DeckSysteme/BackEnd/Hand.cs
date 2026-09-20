@@ -9,7 +9,7 @@ namespace Core.DeckSysteme.BackEnd
     {
         private readonly Deck deck;
 
-        public List<CardInfoData> Cards { get; } = new List<CardInfoData>(GameMetrix.Instance.InitialPoolSize);
+        public List<CardInfoData> Cards { get; } = new List<CardInfoData>();
         public List<CardInfoData> SelectedCards { get; } = new List<CardInfoData>(GameMetrix.Instance.MaxSelectable);
         
         public event Action<CardInfoData> CardDrawn;

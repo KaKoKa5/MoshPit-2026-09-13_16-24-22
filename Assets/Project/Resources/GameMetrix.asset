@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameMetrix
   m_EditorClassIdentifier: Core::Core.Utilities.GameMetrix
   <MaxCardOnHand>k__BackingField: 6
-  <StartDeckCard>k__BackingField: 15
+  <StartDeckCard>k__BackingField: 10
   <MinSelectable>k__BackingField: 1
   <MaxSelectable>k__BackingField: 4
   <InitialPoolSize>k__BackingField: 10
