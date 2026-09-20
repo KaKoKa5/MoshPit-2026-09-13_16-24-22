@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 250bc57f06cf7a048a2e6368983434a1, type: 3}
+  m_Name: Poing
+  m_EditorClassIdentifier: Core::GamePlay.Card.CardInfoData
+  cardName: Poing
+  cardIcon: {fileID: 4505764762537584597, guid: 63eba867245bc594eabadc1440c39cca, type: 3}
+  cardPrefab: {fileID: 1089782617450150528, guid: 43b5a01909385db41b20cb3c10da4b47, type: 3}
+  style: 0
+  rarity: 0
+  type: 0
+  baseValue: 3

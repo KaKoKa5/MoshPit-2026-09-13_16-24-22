@@ -1,87 +1,59 @@
-using System;
 using System.Collections.Generic;
+using Core.DeckSysteme.BackEnd;
 using Core.Utilities;
 using GamePlay.Card;
 using UnityEngine;
 
 namespace Core.DeckSysteme
 {
-    public class HandCards : MonoBehaviour
-    {
-        [field: SerializeField] public List<CardInfoData> Cards { get; private set; } = new List<CardInfoData>(6);
-        [field: SerializeField] public List<CardInfoData> SelectedCards { get; private set; } = new List<CardInfoData>(4);
-        [field: SerializeField] public List<CardInfoData> FieldCards { get; private set; } = new List<CardInfoData>(4);
-        private readonly List<CardInfoData> selectionBuffer = new List<CardInfoData>(4);
-        public event Action HandReady;
-        public event Action<CardInfoData> CardSelected;
-        public event Action<CardInfoData> CardDeselected;
-        public event Action OnCardsPlayedToField;
+	public class HandCards : MonoBehaviour
+	{
+		[SerializeField] private Transform handContainerTransform;
+		[SerializeField] private PlayedField playedField;
 
-        public void TakeCards()
-        {
-            Cards.Clear(); 
+		public Hand Hand { get; private set; }
 
-            for (int i = 0; i < GameMetrix.MaxCardOnHand; i++)
-            {
-                CardInfoData drawnCard = DeckManager.Instance.DrawTopCard();
+		private void Start()
+		{
+			Hand = new Hand(DeckManager.Instance.CardsDeck);
 
-                if (drawnCard == null)
-                {
-                    Debug.LogWarning("Deck vide, impossible de compléter la main.");
-                    break;
-                }
+			Hand.CardDrawn += OnCardDrawn;
+			Hand.CardRemoved += OnCardRemoved;
 
-                Cards.Add(drawnCard);
-            }
+			Hand.FillHand();
+		}
 
-            HandReady?.Invoke();
-        }
+		private void OnDestroy()
+		{
+			Hand.CardDrawn -= OnCardDrawn;
+			Hand.CardRemoved -= OnCardRemoved;
+		}
 
-        public bool TrySelectCard(CardInfoData card)
-        {
-            if (SelectedCards.Count >= GameMetrix.MaxSelectable)
-                return false;
+		private void OnCardDrawn(CardInfoData card)
+		{
+			CardView view = CardPool.Instance.Get(handContainerTransform);
+			view.Setup(card);
+			CardPool.Instance.Bind(card, view);
+		}
 
-            if (SelectedCards.Contains(card) || !Cards.Contains(card))
-                return false;
+		private void OnCardRemoved(CardInfoData card)
+		{
+			CardPool.Instance.ReleaseByData(card);
+		}
+		
+		public void SelectCard(CardInfoData card) => Hand.TrySelectCard(card);
+		public void DeselectCard(CardInfoData card) => Hand.TryDeselectCard(card);
 
-            SelectedCards.Add(card);
-            CardSelected?.Invoke(card);
-            return true;
-        }
+		public void PlaySelection()
+		{
+			List<CardInfoData> orderedSelection = Hand.ConfirmSelectionToField();
 
-        public bool TryDeselectCard(CardInfoData card)
-        {
-            if (!SelectedCards.Remove(card)) 
-                return false;
+			if (orderedSelection != null)
+			{
+				playedField.PlayCards(orderedSelection);
+			}
+		}
 
-            CardDeselected?.Invoke(card);
-            return true;
-        }
-
-        public bool CanConfirmSelection()
-        {
-            int count = SelectedCards.Count;
-            return count >= GameMetrix.MinSelectable && count <= GameMetrix.MaxSelectable;
-        }
-        
-        public List<CardInfoData> PlaySelectedCardsToField()
-        {
-            if (!CanConfirmSelection())
-                return null;
-
-            selectionBuffer.Clear();
-            selectionBuffer.AddRange(SelectedCards);
-            
-            for (int i = 0; i < selectionBuffer.Count; i++)
-            {
-                Cards.Remove(selectionBuffer[i]);
-            }
-
-            SelectedCards.Clear();
-            OnCardsPlayedToField?.Invoke();
-            return selectionBuffer;
-        }
-        
-    }
+		public void DiscardSelection() => Hand.DiscardSelection();
+	}
 }
