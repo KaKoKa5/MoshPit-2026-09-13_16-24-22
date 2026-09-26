@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Core.DeckSysteme.Cards;
 using Core.Utilities;
-using GamePlay.Card;
 using UnityEngine;
 
 namespace Core.DeckSysteme
@@ -11,8 +11,6 @@ namespace Core.DeckSysteme
 
 		public Field Field { get; private set; }
 
-		// Le champ garde ses propres vues actives, séparées de celles de la main,
-		// pour pouvoir toutes les libérer d'un coup sur ClearedField.
 		private readonly List<CardView> activeViews = new List<CardView>(4);
 
 		private void Awake()
@@ -28,7 +26,7 @@ namespace Core.DeckSysteme
 			Field.ClearedField -= OnClearedField;
 		}
 
-		private void OnCardAdded(CardInfoData card)
+		private void OnCardAdded(CardInstance card)
 		{
 			CardView view = CardPool.Instance.Get(fieldContainerTransform);
 			view.Setup(card);
@@ -46,7 +44,7 @@ namespace Core.DeckSysteme
 			activeViews.Clear();
 		}
 
-		public void PlayCards(List<CardInfoData> orderedCards)
+		public void PlayCards(List<CardInstance> orderedCards)
 		{
 			Field.PlayCards(orderedCards);
 		}

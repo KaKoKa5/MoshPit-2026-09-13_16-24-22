@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
+using Core.DeckSysteme.Cards;
 using Core.Utilities;
-using GamePlay.Card;
 
-namespace Core.DeckSysteme.BackEnd
+namespace Core.DeckSysteme
 {
     public class Hand
     {
         private readonly Deck deck;
 
-        public List<CardInfoData> Cards { get; } = new List<CardInfoData>();
-        public List<CardInfoData> SelectedCards { get; } = new List<CardInfoData>(GameMetrix.Instance.MaxSelectable);
+        public List<CardInstance> Cards { get; } = new List<CardInstance>(6);
+        public List<CardInstance> SelectedCards { get; } = new List<CardInstance>(4);
         
-        public event Action<CardInfoData> CardDrawn;
-        public event Action<CardInfoData> CardRemoved; 
-        public event Action<CardInfoData> CardSelected;
-        public event Action<CardInfoData> CardDeselected;
+        public event Action<CardInstance, int> CardDrawn;
+        public event Action<CardInstance> CardRemoved;
+        public event Action<CardInstance> CardSelected;
+        public event Action<CardInstance> CardDeselected;
 
-        private readonly List<CardInfoData> buffer = new List<CardInfoData>(GameMetrix.Instance.MaxSelectable);
+        private readonly List<CardInstance> buffer = new List<CardInstance>(4);
 
         public Hand(Deck deck)
         {
@@ -30,21 +30,23 @@ namespace Core.DeckSysteme.BackEnd
 
             for (int i = 0; i < cardsToDraw; i++)
             {
-                CardInfoData drawnCard = deck.DrawTopCard();
+                CardInstance drawnCard = deck.DrawTopCard();
 
                 if (drawnCard == null)
                     break;
 
                 Cards.Add(drawnCard);
-                CardDrawn?.Invoke(drawnCard);
+                CardDrawn?.Invoke(drawnCard, Cards.Count - 1);
             }
         }
 
-        public bool TrySelectCard(CardInfoData card)
+        public bool TrySelectCard(CardInstance card)
         {
             if (SelectedCards.Count >= GameMetrix.Instance.MaxSelectable)
                 return false;
 
+            // Contains/Remove sur List<CardInstance> comparent par référence (pas d'Equals surchargé),
+            // donc deux exemplaires de la même carte sont bien traités comme distincts.
             if (SelectedCards.Contains(card) || !Cards.Contains(card))
                 return false;
 
@@ -53,7 +55,7 @@ namespace Core.DeckSysteme.BackEnd
             return true;
         }
 
-        public bool TryDeselectCard(CardInfoData card)
+        public bool TryDeselectCard(CardInstance card)
         {
             if (!SelectedCards.Remove(card))
                 return false;
@@ -68,7 +70,7 @@ namespace Core.DeckSysteme.BackEnd
             return count >= GameMetrix.Instance.MinSelectable && count <= GameMetrix.Instance.MaxSelectable;
         }
 
-        public List<CardInfoData> ConfirmSelectionToField()
+        public List<CardInstance> ConfirmSelectionToField()
         {
             if (!CanConfirmSelection())
                 return null;
@@ -94,7 +96,7 @@ namespace Core.DeckSysteme.BackEnd
             FillHand();
         }
 
-        private void RemoveFromHand(List<CardInfoData> cards)
+        private void RemoveFromHand(List<CardInstance> cards)
         {
             for (int i = 0; i < cards.Count; i++)
             {

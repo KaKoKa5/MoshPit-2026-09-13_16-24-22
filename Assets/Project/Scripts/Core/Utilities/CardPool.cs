@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Core.DeckSysteme;
-using GamePlay.Card;
+using Core.DeckSysteme.Cards;
 using UnityEngine;
 
 namespace Core.Utilities
@@ -10,9 +10,9 @@ namespace Core.Utilities
 		[SerializeField] private CardView cardViewPrefab;
 		[SerializeField] private Transform poolParent;
 
-		private readonly Dictionary<CardInfoData, CardView> activeByData = new Dictionary<CardInfoData, CardView>(10);
+		private readonly Dictionary<CardInstance, CardView> activeByInstance = new Dictionary<CardInstance, CardView>(10);
 
-		public void Bind(CardInfoData data, CardView view) => activeByData[data] = view;
+		public void Bind(CardInstance instance, CardView view) => activeByInstance[instance] = view;
 
 		private readonly Stack<CardView> availableCards = new Stack<CardView>();
 
@@ -50,12 +50,12 @@ namespace Core.Utilities
 			availableCards.Push(card);
 		}
 
-		public void ReleaseByData(CardInfoData data)
+		public void ReleaseByInstance(CardInstance instance)
 		{
-			if (activeByData.TryGetValue(data, out CardView view))
+			if (activeByInstance.TryGetValue(instance, out CardView view))
 			{
 				Release(view);
-				activeByData.Remove(data);
+				activeByInstance.Remove(instance);
 			}
 		}
 	}

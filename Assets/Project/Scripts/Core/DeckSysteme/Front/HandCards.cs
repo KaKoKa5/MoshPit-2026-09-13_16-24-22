@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using Core.DeckSysteme.BackEnd;
+using Core.DeckSysteme.Cards;
 using Core.Utilities;
-using GamePlay.Card;
 using UnityEngine;
 
 namespace Core.DeckSysteme
 {
 	public class HandCards : MonoBehaviour
 	{
-		[SerializeField] private Transform handContainerTransform;
+		[SerializeField] private RectTransform[] handSlots;
 		[SerializeField] private PlayedField playedField;
 
 		public Hand Hand { get; private set; }
@@ -29,24 +28,32 @@ namespace Core.DeckSysteme
 			Hand.CardRemoved -= OnCardRemoved;
 		}
 
-		private void OnCardDrawn(CardInfoData card)
+		private void OnCardDrawn(CardInstance card, int slotIndex)
 		{
-			CardView view = CardPool.Instance.Get(handContainerTransform);
+			RectTransform slot = handSlots[slotIndex];
+
+			CardView view = CardPool.Instance.Get(slot);
 			view.Setup(card);
 			CardPool.Instance.Bind(card, view);
+
+			RectTransform viewRect = (RectTransform)view.transform;
+			viewRect.anchoredPosition = Vector2.zero;
+
+			CardInteraction interaction = view.GetComponent<CardInteraction>();
+			interaction.Setup(view, this, Vector2.zero);
 		}
 
-		private void OnCardRemoved(CardInfoData card)
+		private void OnCardRemoved(CardInstance card)
 		{
-			CardPool.Instance.ReleaseByData(card);
+			CardPool.Instance.ReleaseByInstance(card);
 		}
-		
-		public void SelectCard(CardInfoData card) => Hand.TrySelectCard(card);
-		public void DeselectCard(CardInfoData card) => Hand.TryDeselectCard(card);
+
+		public void SelectCard(CardInstance card) => Hand.TrySelectCard(card);
+		public void DeselectCard(CardInstance card) => Hand.TryDeselectCard(card);
 
 		public void PlaySelection()
 		{
-			List<CardInfoData> orderedSelection = Hand.ConfirmSelectionToField();
+			List<CardInstance> orderedSelection = Hand.ConfirmSelectionToField();
 
 			if (orderedSelection != null)
 			{

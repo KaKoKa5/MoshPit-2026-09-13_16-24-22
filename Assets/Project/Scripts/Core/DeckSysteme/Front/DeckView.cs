@@ -1,4 +1,3 @@
-using Core.DeckSysteme.BackEnd;
 using Core.Utilities;
 using TMPro; 
 using UnityEngine;
@@ -18,7 +17,7 @@ namespace Core.DeckSysteme
 			deck = DeckManager.Instance.CardsDeck;
 			deck.DeckChanged += Refresh;
 
-			Refresh(); // état initial
+			Refresh();
 		}
 
 		private void OnDestroy()

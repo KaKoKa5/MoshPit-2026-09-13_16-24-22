@@ -1,19 +1,25 @@
 using System;
 using System.Collections.Generic;
+using Core.DeckSysteme.Cards;
 using GamePlay.Card;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
-namespace Core.DeckSysteme.BackEnd
+namespace Core.DeckSysteme
 {
 	public class Deck
 	{
-		public List<CardInfoData> Cards { get; } = new List<CardInfoData>();
-		private List<CardInfoData> Discard { get; } = new List<CardInfoData>();
+		public List<CardInstance> Cards { get; } = new List<CardInstance>();
+		public List<CardInstance> Discard { get; } = new List<CardInstance>();
+
 		public event Action DeckChanged;
+
 		public Deck(List<CardInfoData> masterDeck)
 		{
-			Cards.AddRange(masterDeck);
+			foreach (CardInfoData data in masterDeck)
+			{
+				Cards.Add(new CardInstance(data)); // chaque entrée devient une instance unique, même si Data est partagée
+			}
+
 			Shuffle();
 		}
 
@@ -21,13 +27,14 @@ namespace Core.DeckSysteme.BackEnd
 		{
 			for (int i = Cards.Count - 1; i > 0; i--)
 			{
-				int j = Random.Range(0, i + 1);
+				int j = UnityEngine.Random.Range(0, i + 1);
 				(Cards[i], Cards[j]) = (Cards[j], Cards[i]);
 			}
+
 			DeckChanged?.Invoke();
 		}
 
-		public CardInfoData DrawTopCard()
+		public CardInstance DrawTopCard()
 		{
 			if (Cards.Count == 0)
 				RecycleDiscard();
@@ -35,14 +42,13 @@ namespace Core.DeckSysteme.BackEnd
 			if (Cards.Count == 0)
 				return null;
 
-			CardInfoData topCard = Cards[0];
+			CardInstance topCard = Cards[0];
 			Cards.RemoveAt(0);
 			DeckChanged?.Invoke();
-			Debug.Log(Cards.Count);
 			return topCard;
 		}
 
-		public void AddToDiscard(List<CardInfoData> cards)
+		public void AddToDiscard(List<CardInstance> cards)
 		{
 			Discard.AddRange(cards);
 			DeckChanged?.Invoke();
