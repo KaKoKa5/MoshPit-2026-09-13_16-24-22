@@ -8865,7 +8865,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c764933ba59a44c3a98e7b08cdd0e4a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Core::Core.DeckSysteme.HandCards
-  handContainerTransform: {fileID: 967740510}
   handSlots:
   - {fileID: 1977317765}
   - {fileID: 1764269579}
@@ -8874,6 +8873,8 @@ MonoBehaviour:
   - {fileID: 256013743}
   - {fileID: 191486165}
   playedField: {fileID: 207454456}
+  maxSwapDistance: 200
+  deckOrigin: {fileID: 803467064}
 --- !u!1 &1550338514
 GameObject:
   m_ObjectHideFlags: 0

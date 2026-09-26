@@ -14,7 +14,7 @@ namespace Core.DeckSysteme
 
 		private void Start()
 		{
-			deck = DeckManager.Instance.CardsDeck;
+			deck = DeckManager.Instance.Deck;
 			deck.DeckChanged += Refresh;
 
 			Refresh();

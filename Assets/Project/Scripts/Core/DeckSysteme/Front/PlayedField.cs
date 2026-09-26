@@ -7,31 +7,42 @@ namespace Core.DeckSysteme
 {
 	public class PlayedField : MonoBehaviour
 	{
-		[SerializeField] private Transform fieldContainerTransform;
-
+		[SerializeField] private RectTransform[] fieldSlots;
 		public Field Field { get; private set; }
 
-		private readonly List<CardView> activeViews = new List<CardView>(4);
+		private List<CardView> activeViews;
 
 		private void Awake()
 		{
+			int capacity = GameMetrix.Instance != null ? GameMetrix.Instance.MaxSelectable : 4;
+			activeViews = new List<CardView>(capacity);
+
 			Field = new Field();
 			Field.CardAdded += OnCardAdded;
 			Field.ClearedField += OnClearedField;
 		}
-
 		private void OnDestroy()
 		{
 			Field.CardAdded -= OnCardAdded;
 			Field.ClearedField -= OnClearedField;
 		}
 
-		private void OnCardAdded(CardInstance card)
+		private void OnCardAdded(CardInstance card, int slotIndex)
 		{
-			CardView view = CardPool.Instance.Get(fieldContainerTransform);
+
+			RectTransform slot = fieldSlots[slotIndex];
+			CardView view = CardPool.Instance.Get(slot);
+			
 			view.Setup(card);
 			CardPool.Instance.Bind(card, view);
 			activeViews.Add(view);
+
+			RectTransform viewRect = (RectTransform)view.transform;
+			viewRect.anchoredPosition = Vector2.zero;
+
+			CardInteraction interaction = view.GetComponent<CardInteraction>();
+			
+			interaction.PlayDrawAnimation();
 		}
 
 		private void OnClearedField()

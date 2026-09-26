@@ -166,6 +166,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Core::Core.DeckSysteme.CardAnimation
   cardInteraction: {fileID: 4880149979975716304}
+  timeIn: 0.3
+  timeout: 0.201
+  shake: 15.08
+  endDragShake: 15.08
+  frequency: 7
+  frequencyEndDrag: 15
+  enterScale: {x: 1.2, y: 1.2, z: 1.2}
+  selectedScale: {x: 1.3, y: 1.3, z: 1.3}
 --- !u!1 &1798466529972047131
 GameObject:
   m_ObjectHideFlags: 0

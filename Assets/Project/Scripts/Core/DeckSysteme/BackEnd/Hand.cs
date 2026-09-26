@@ -9,15 +9,15 @@ namespace Core.DeckSysteme
     {
         private readonly Deck deck;
 
-        public List<CardInstance> Cards { get; } = new List<CardInstance>(6);
-        public List<CardInstance> SelectedCards { get; } = new List<CardInstance>(4);
+        public List<CardInstance> Cards { get; } = new List<CardInstance>(GameMetrix.Instance.MaxCardOnHand);
+        public List<CardInstance> SelectedCards { get; } = new List<CardInstance>(GameMetrix.Instance.MaxSelectable);
         
         public event Action<CardInstance, int> CardDrawn;
         public event Action<CardInstance> CardRemoved;
         public event Action<CardInstance> CardSelected;
         public event Action<CardInstance> CardDeselected;
 
-        private readonly List<CardInstance> buffer = new List<CardInstance>(4);
+        private readonly List<CardInstance> buffer = new List<CardInstance>(GameMetrix.Instance.MaxSelectable);
 
         public Hand(Deck deck)
         {
@@ -44,9 +44,7 @@ namespace Core.DeckSysteme
         {
             if (SelectedCards.Count >= GameMetrix.Instance.MaxSelectable)
                 return false;
-
-            // Contains/Remove sur List<CardInstance> comparent par référence (pas d'Equals surchargé),
-            // donc deux exemplaires de la même carte sont bien traités comme distincts.
+            
             if (SelectedCards.Contains(card) || !Cards.Contains(card))
                 return false;
 

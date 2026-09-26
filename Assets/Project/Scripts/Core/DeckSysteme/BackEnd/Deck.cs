@@ -17,7 +17,7 @@ namespace Core.DeckSysteme
 		{
 			foreach (CardInfoData data in masterDeck)
 			{
-				Cards.Add(new CardInstance(data)); // chaque entrée devient une instance unique, même si Data est partagée
+				Cards.Add(new CardInstance(data));
 			}
 
 			Shuffle();
@@ -46,6 +46,16 @@ namespace Core.DeckSysteme
 			Cards.RemoveAt(0);
 			DeckChanged?.Invoke();
 			return topCard;
+		}
+
+		public void AddToDeck(CardInstance card)
+		{
+			Cards.Add(card);
+		}
+
+		public void RemoveFromDeck(CardInstance card)
+		{
+			Cards.Remove(card);
 		}
 
 		public void AddToDiscard(List<CardInstance> cards)

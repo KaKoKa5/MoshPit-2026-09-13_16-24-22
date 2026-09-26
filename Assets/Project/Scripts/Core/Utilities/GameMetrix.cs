@@ -20,7 +20,15 @@ namespace Core.Utilities
 			get
 			{
 				if (_instance == null)
+				{
 					_instance = Resources.Load<GameMetrix>("GameMetrix");
+
+					if (_instance == null)
+					{
+						Debug.LogError("[GameMetrix] Aucun asset 'GameMetrix' trouvé dans un dossier Resources ! " +
+						               "Crée-le via Assets > Create > Mosh Pit > Game Metrix, et place-le dans un dossier nommé 'Resources'.");
+					}
+				}
 
 				return _instance;
 			}
