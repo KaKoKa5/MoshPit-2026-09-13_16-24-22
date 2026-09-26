@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace Core.Utilities
 {
-	[CreateAssetMenu(fileName = "GameMetrix", menuName = "Mosh Pit/Game Metrix")]
 	public class GameMetrix : ScriptableObject
 	{
 		[field: SerializeField] public int MaxCardOnHand { get; private set; } = 6;
