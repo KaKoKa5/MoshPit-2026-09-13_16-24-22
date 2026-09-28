@@ -7,8 +7,11 @@ namespace Core.DeckSysteme
 {
 	public class DeckManager : Singleton<DeckManager>
 	{
-		[field: SerializeField] public List<CardInfoData> MasterDeck { get; private set; } = new List<CardInfoData>(GameMetrix.Instance.StartDeckCard);
-		[field: SerializeField] public Deck Deck { get; private set; }
+		
+		[SerializeField] private List<CardInfoData> masterDeck = new List<CardInfoData>();
+
+		public List<CardInfoData> MasterDeck => masterDeck;
+		public Deck Deck { get; private set; }
 
 		protected override void Awake()
 		{

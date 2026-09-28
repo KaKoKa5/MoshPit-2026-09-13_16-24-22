@@ -7,8 +7,9 @@ namespace Core.DeckSysteme
 {
     public class HandCards : MonoBehaviour
     {
-        [SerializeField] private RectTransform[] handSlots;
         [SerializeField] private PlayedField playedField;
+        
+        [SerializeField] private RectTransform[] handSlots;
         [SerializeField] private float maxSwapDistance = 500f;
         [SerializeField] private RectTransform deckOrigin;
 
@@ -135,7 +136,7 @@ namespace Core.DeckSysteme
 		        return;
             RectTransform slot = handSlots[slotIndex];
 
-            view.transform.SetParent(slot, true); // worldPositionStays: true, évite un saut visuel
+            view.transform.SetParent(slot, true); 
 
             CardInteraction interaction = view.GetComponent<CardInteraction>();
             interaction.SetSlotIndex(slotIndex);
@@ -147,12 +148,14 @@ namespace Core.DeckSysteme
 
         public void PlaySelection()
         {
+	        if (playedField.Field.PlayedCards.Count >= GameMetrix.MaxSelectable)
+		        return;
+            
             List<CardInstance> orderedSelection = Hand.ConfirmSelectionToField();
 
-            if (orderedSelection != null)
-            {
-                playedField.PlayCards(orderedSelection);
-            }
+            if (orderedSelection == null)
+				return;
+	        playedField.PlayCards(orderedSelection);
         }
 
         public void DiscardSelection() => Hand.DiscardSelection();

@@ -40,6 +40,10 @@ namespace Core.DeckSysteme
         public event Action<Transform> CardDeselect;
         public event Action<Transform, float> SlotSnap; 
         public event Action<Transform> DrawFromDeck;
+        
+        private bool interactable = true;
+
+        public void SetInteractable(bool value) => interactable = value;
 
         private void Awake()
         {
@@ -89,12 +93,14 @@ namespace Core.DeckSysteme
 
         public void OnPointerDown(PointerEventData eventData)
         {
+	        if (!interactable) return;
             pointerDownTime = Time.time;
             wasDragged = false;
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+	        if (!interactable) return;
             float heldDuration = Time.time - pointerDownTime;
 
             if (heldDuration > tapMaxDuration || wasDragged)
@@ -108,6 +114,7 @@ namespace Core.DeckSysteme
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+	        if (!interactable) return;
             BeginDrag?.Invoke(transform);
             wasDragged = true;
             dragOffset = rectTransform.anchoredPosition - eventData.position;
@@ -115,11 +122,13 @@ namespace Core.DeckSysteme
 
         public void OnDrag(PointerEventData eventData)
         {
+	        if (!interactable) return;
             rectTransform.anchoredPosition = eventData.position + dragOffset;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+	        if (!interactable) return;
             EndDrag?.Invoke(transform);
 
             // C'est HandCards qui décide où la carte doit finir (réorganisation ou retour chez elle),
@@ -129,6 +138,7 @@ namespace Core.DeckSysteme
 
         private void OnHandCardSelected(CardInstance card)
         {
+	        if (!interactable) return;
             if (card != cardView.Instance)
                 return;
 
@@ -139,6 +149,7 @@ namespace Core.DeckSysteme
 
         private void OnHandCardDeselected(CardInstance card)
         {
+	        if (!interactable) return;
             if (card != cardView.Instance)
                 return;
 

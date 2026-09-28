@@ -5,13 +5,15 @@ namespace Core.Utilities
 	public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 	{
 		private static T instance;
+
 		public static T Instance
 		{
 			get
 			{
 				if (instance == null)
 				{
-					instance = FindObjectOfType<T>();
+					instance = FindAnyObjectByType<T>();
+
 					if (instance == null)
 					{
 						var singletonObject = new GameObject(typeof(T).Name + " (Singleton)");
@@ -20,20 +22,21 @@ namespace Core.Utilities
 				}
 
 				return instance;
-                
 			}
 		}
+
 		protected virtual void Awake()
 		{
 			if (instance != null && instance != this as T)
 			{
-				Destroy(gameObject);
+				Destroy(this); 
 				return;
 			}
+
 			instance = this as T;
-			DontDestroyOnLoad(gameObject);
+			
+			if (transform.parent == null)
+				DontDestroyOnLoad(gameObject);
 		}
-        
 	}
-    
 }

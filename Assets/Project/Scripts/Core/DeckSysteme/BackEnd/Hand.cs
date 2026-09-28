@@ -9,24 +9,28 @@ namespace Core.DeckSysteme
     {
         private readonly Deck deck;
 
-        public List<CardInstance> Cards { get; } = new List<CardInstance>(GameMetrix.Instance.MaxCardOnHand);
-        public List<CardInstance> SelectedCards { get; } = new List<CardInstance>(GameMetrix.Instance.MaxSelectable);
-        
+        public List<CardInstance> Cards { get; }
+        public List<CardInstance> SelectedCards { get; }
+
         public event Action<CardInstance, int> CardDrawn;
         public event Action<CardInstance> CardRemoved;
         public event Action<CardInstance> CardSelected;
         public event Action<CardInstance> CardDeselected;
 
-        private readonly List<CardInstance> buffer = new List<CardInstance>(GameMetrix.Instance.MaxSelectable);
+        private readonly List<CardInstance> buffer;
 
         public Hand(Deck deck)
         {
             this.deck = deck;
+            
+            Cards = new List<CardInstance>(GameMetrix.MaxCardOnHand);
+            SelectedCards = new List<CardInstance>(GameMetrix.MaxSelectable);
+            buffer = new List<CardInstance>(GameMetrix.MaxSelectable);
         }
 
         public void FillHand()
         {
-            int cardsToDraw = GameMetrix.Instance.MaxCardOnHand - Cards.Count;
+            int cardsToDraw = GameMetrix.MaxCardOnHand - Cards.Count;
 
             for (int i = 0; i < cardsToDraw; i++)
             {
@@ -42,9 +46,9 @@ namespace Core.DeckSysteme
 
         public bool TrySelectCard(CardInstance card)
         {
-            if (SelectedCards.Count >= GameMetrix.Instance.MaxSelectable)
+            if (SelectedCards.Count >= GameMetrix.MaxSelectable)
                 return false;
-            
+
             if (SelectedCards.Contains(card) || !Cards.Contains(card))
                 return false;
 
@@ -65,7 +69,7 @@ namespace Core.DeckSysteme
         public bool CanConfirmSelection()
         {
             int count = SelectedCards.Count;
-            return count >= GameMetrix.Instance.MinSelectable && count <= GameMetrix.Instance.MaxSelectable;
+            return count >= GameMetrix.MinSelectable && count <= GameMetrix.MaxSelectable;
         }
 
         public List<CardInstance> ConfirmSelectionToField()

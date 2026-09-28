@@ -30,7 +30,7 @@ namespace Core.DeckSysteme
 		{
 			int remaining = deck.Cards.Count;
 
-			countText.text = remaining.ToString() + "/" + GameMetrix.Instance.InitialPoolSize;
+			countText.text = remaining.ToString() + "/" + GameMetrix.StartDeckCard;
 			cardBackImage.enabled = remaining > 0; 
 		}
 	}

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using Core.DeckSysteme.Cards;
 using Core.Utilities;
+using UnityEngine;
 
 namespace Core.DeckSysteme
 {
 	public class Field
 	{
-		public List<CardInstance> PlayedCards { get; } = new List<CardInstance>(GameMetrix.Instance.MaxSelectable);
+		public List<CardInstance> PlayedCards { get; } = new List<CardInstance>(GameMetrix.MaxSelectable);
 
 		public event Action<CardInstance,int> CardAdded;
 		public event Action ClearedField;

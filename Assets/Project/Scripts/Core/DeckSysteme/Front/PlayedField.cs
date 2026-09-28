@@ -14,8 +14,7 @@ namespace Core.DeckSysteme
 
 		private void Awake()
 		{
-			int capacity = GameMetrix.Instance != null ? GameMetrix.Instance.MaxSelectable : 4;
-			activeViews = new List<CardView>(capacity);
+			activeViews = new List<CardView>(GameMetrix.MaxSelectable);
 
 			Field = new Field();
 			Field.CardAdded += OnCardAdded;
@@ -29,7 +28,6 @@ namespace Core.DeckSysteme
 
 		private void OnCardAdded(CardInstance card, int slotIndex)
 		{
-
 			RectTransform slot = fieldSlots[slotIndex];
 			CardView view = CardPool.Instance.Get(slot);
 			
@@ -41,8 +39,8 @@ namespace Core.DeckSysteme
 			viewRect.anchoredPosition = Vector2.zero;
 
 			CardInteraction interaction = view.GetComponent<CardInteraction>();
-			
-			interaction.PlayDrawAnimation();
+			interaction.SetInteractable(false);
+			interaction.PlayDrawAnimation(delay: slotIndex * 0.06f);
 		}
 
 		private void OnClearedField()
@@ -57,6 +55,7 @@ namespace Core.DeckSysteme
 
 		public void PlayCards(List<CardInstance> orderedCards)
 		{
+			
 			Field.PlayCards(orderedCards);
 		}
 	}
