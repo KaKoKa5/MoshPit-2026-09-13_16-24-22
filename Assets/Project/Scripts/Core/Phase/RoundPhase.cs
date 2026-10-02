@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.DeckSysteme;
 using Core.DeckSysteme.Enemy;
 using Core.DeckSysteme.Phases;
+using Core.DeckSysteme.UI;
 using Core.Utilities;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace Core.Phase
 		[SerializeField] private PlayedField playerField;
 		[SerializeField] private EnemyController enemy;
 		[SerializeField] private ComboLibrary comboLibrary;
+		[SerializeField] private CombatHUD hud;
 		
 
 		private RoundContext context;
@@ -29,6 +31,7 @@ namespace Core.Phase
 				PlayerHealth = GameMetrix.MaxHP,
 				Resolver = new TurnResolver(),
 				ComboLibrary = comboLibrary,
+				Hud = hud
 			};
 
 			phases = new List<IPhases>
@@ -41,6 +44,8 @@ namespace Core.Phase
 
 			foreach (IPhases phase in phases)
 				phase.Initialize(context);
+			
+			hud.OnTurnStarted(currentIndex,GameMetrix.MaxHP);
 
 			currentIndex = 0;
 			RunCurrentPhase();

@@ -49,7 +49,7 @@ namespace Core.DeckSysteme.UI
         /// <summary>
         /// Appelé par RoundPhase/ResolvePhase en tout début de tour, pour remettre l'affichage à zéro.
         /// </summary>
-        public void OnTurnStarted(int currentTurn, int playerHealth)
+        public void OnTurnStarted(int currentTurn, float playerHealth)
         {
             roundText.text = currentTurn.ToString();
             chipsText.text = "0";
@@ -94,9 +94,9 @@ namespace Core.DeckSysteme.UI
             comboMultText.text = $"+{multBonus}";
         }
 
-        private void UpdateHealthBar(int playerHealth)
+        private void UpdateHealthBar(float playerHealth)
         {
-            float ratio = Mathf.Clamp01((float)playerHealth / GameMetrix.MaxHP);
+            float ratio = Mathf.Clamp01(playerHealth / GameMetrix.MaxHP);
             Tween.Custom(healthBarFill.fillAmount, ratio, 0.4f, val => healthBarFill.fillAmount = val);
         }
 
