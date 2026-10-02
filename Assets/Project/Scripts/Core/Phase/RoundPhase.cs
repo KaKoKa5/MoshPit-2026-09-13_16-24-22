@@ -75,5 +75,11 @@ namespace Core.Phase
 
 			RunCurrentPhase();
 		}
+		
+		private void OnDestroy()
+		{
+			if (activePhase != null)
+				activePhase.OnPhaseCompleted -= OnPhaseCompleted;
+		}
 	}
 }

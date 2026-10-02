@@ -18,11 +18,7 @@ namespace Core.DeckSysteme.Enemy
 		    drawBuffer = new List<CardInstance>(GameMetrix.MaxSelectable);
 		    Deck = new Deck(masterDeck);
 	    }
-
-	    private void Start()
-	    {
-		    PlayEnemyTurn();
-	    }
+	    
 	    public void PlayEnemyTurn()
 	    {
 		    drawBuffer.Clear();

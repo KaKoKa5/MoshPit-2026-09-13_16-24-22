@@ -27,9 +27,9 @@ namespace Core.Utilities
 		public static int MinSelectable { get; private set; }= 1;
 		public static int MaxSelectable { get; private set; }= 4;
 		public static int InitialPoolSize { get; private set; }= 30;
-		public static int DodgeMult { get; set; }
-		public static int ExchangeMult { get; set; }
-		public static int BaseMult { get; set; }
-		public static int DisciplineBonusMult { get; set; }
+		public static int DodgeMult { get; private set; } = 1;
+		public static int ExchangeMult { get; private set; } = 3;
+		public static int BaseMult { get; private set; } = 2;
+		public static int DisciplineBonusMult { get; private set; } = 5;
 	}
 }

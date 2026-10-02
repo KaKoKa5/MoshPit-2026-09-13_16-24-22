@@ -20,44 +20,56 @@ namespace Core.DeckSysteme
         public Hand Hand { get; private set; }
 
         private CardView[] slotViews;
+
         private void Awake()
         {
             slotViews = new CardView[handSlots.Length];
+            InitializeHand();
         }
 
-        private void Start()
+        public void InitializeHand()
         {
-            Hand = new Hand(DeckManager.Instance.Deck);
+            if (Hand != null) return;
 
+            Hand = new Hand(DeckManager.Instance.Deck);
             Hand.CardDrawn += OnCardDrawn;
             Hand.CardRemoved += OnCardRemoved;
-
-            Hand.FillHand();
         }
 
         private void OnDestroy()
         {
-            Hand.CardDrawn -= OnCardDrawn;
-            Hand.CardRemoved -= OnCardRemoved;
+            if (Hand != null)
+            {
+                Hand.CardDrawn -= OnCardDrawn;
+                Hand.CardRemoved -= OnCardRemoved;
+            }
         }
 
         private void OnCardDrawn(CardInstance card, int slotIndex)
         {
-	        RectTransform slot = handSlots[slotIndex];
+            if (slotIndex < 0 || slotIndex >= handSlots.Length)
+            {
+                Debug.LogError($"[HandCards] slotIndex {slotIndex} hors limites (handSlots: {handSlots.Length})");
+                return;
+            }
 
-	        CardView view = CardPool.Instance.Get(slot);
-	        view.Setup(card);
-	        CardPool.Instance.Bind(card, view);
+            RectTransform slot = handSlots[slotIndex];
 
-	        RectTransform viewRect = (RectTransform)view.transform;
-	        viewRect.anchoredPosition = GetLocalPositionInSlot(deckOrigin, slot); 
+            CardView view = CardPool.Instance.Get(slot);
+            view.Setup(card);
+            CardPool.Instance.Bind(card, view);
 
-	        slotViews[slotIndex] = view;
+            RectTransform viewRect = (RectTransform)view.transform;
+            viewRect.anchoredPosition = GetLocalPositionInSlot(deckOrigin, slot); 
 
-	        CardInteraction interaction = view.GetComponent<CardInteraction>();
-	        interaction.Setup(view, this, slotIndex);
+            slotViews[slotIndex] = view;
 
-	        interaction.PlayDrawAnimation(delay: slotIndex * 0.06f);
+            CardInteraction interaction = view.GetComponent<CardInteraction>();
+            if (interaction != null)
+            {
+                interaction.Setup(view, this, slotIndex);
+                interaction.PlayDrawAnimation(delay: slotIndex * 0.06f);
+            }
         }
 
         private void OnCardRemoved(CardInstance card)
@@ -96,8 +108,8 @@ namespace Core.DeckSysteme
 
         public void TryReorder(CardInteraction dragged, Vector2 dropScreenPosition)
         {
-	        if (dragged == null)
-		        return;
+            if (dragged == null)
+               return;
             int targetIndex = GetNearestSlotIndex(dropScreenPosition);
             int sourceIndex = dragged.CurrentSlotIndex;
 
@@ -135,15 +147,18 @@ namespace Core.DeckSysteme
 
         private void MoveViewToSlot(CardView view, int slotIndex)
         {
-	        if (view == null)
-		        return;
+            if (view == null)
+               return;
             RectTransform slot = handSlots[slotIndex];
 
             view.transform.SetParent(slot, true); 
 
             CardInteraction interaction = view.GetComponent<CardInteraction>();
-            interaction.SetSlotIndex(slotIndex);
-            interaction.SnapHome();
+            if (interaction != null)
+            {
+                interaction.SetSlotIndex(slotIndex);
+                interaction.SnapHome();
+            }
         }
 
         public void SelectCard(CardInstance card) => Hand.TrySelectCard(card);
@@ -151,32 +166,32 @@ namespace Core.DeckSysteme
 
         public void PlaySelection()
         {
-	        if (!InputEnabled)
-		        return;
-	        if (playedField.Field.PlayedCards.Count >= GameMetrix.MaxSelectable)
-		        return;
+            if (!InputEnabled)
+               return;
+            if (playedField.Field.PlayedCards.Count >= GameMetrix.MaxSelectable)
+               return;
             
             List<CardInstance> orderedSelection = Hand.ConfirmSelectionToField();
 
             if (orderedSelection == null)
-				return;
-	        playedField.PlayCards(orderedSelection);
-	        SelectionPlayed?.Invoke();
+             return;
+            playedField.PlayCards(orderedSelection);
+            SelectionPlayed?.Invoke();
         }
 
         public void DiscardSelection()
         {
-	        if (!InputEnabled)
-		        return;
-	        
-	        Hand.DiscardSelection();
+            if (!InputEnabled)
+               return;
+            
+            Hand.DiscardSelection();
         }
         
         private Vector2 GetLocalPositionInSlot(RectTransform source, RectTransform targetParent)
         {
-	        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, source.position);
-	        RectTransformUtility.ScreenPointToLocalPointInRectangle(targetParent, screenPos, null, out Vector2 localPos);
-	        return localPos;
+            Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, source.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(targetParent, screenPos, null, out Vector2 localPos);
+            return localPos;
         }
     }
 }

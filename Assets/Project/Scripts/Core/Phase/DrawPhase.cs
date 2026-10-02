@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Core.Phase
 {
@@ -14,11 +15,10 @@ namespace Core.Phase
 
 		public void Execute()
 		{
-			
 			context.CurrentTurn++;
-			context.Enemy.PlayEnemyTurn();
 			context.HandCards.Hand.FillHand();
-			
+			context.Enemy.PlayEnemyTurn();
+    
 			OnPhaseCompleted?.Invoke();
 		}
 

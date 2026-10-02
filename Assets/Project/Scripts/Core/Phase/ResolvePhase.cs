@@ -20,7 +20,7 @@ namespace Core.DeckSysteme.Phases
 
         public void Execute()
         {
-            int baseScore = context.Resolver.Resolve(context.PlayerField.Field.PlayedCards, context.Enemy.EnemyField.Field.PlayedCards);
+            //int baseScore = context.Resolver.Resolve(context.PlayerField.Field.PlayedCards, context.Enemy.EnemyField.Field.PlayedCards);
 
             // Bonus de combo (gestes) et de discipline, sur la main jouée
             var namedCombos = ComboDetector.DetectNamedCombos(

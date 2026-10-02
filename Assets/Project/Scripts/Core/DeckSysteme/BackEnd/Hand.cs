@@ -95,7 +95,7 @@ namespace Core.DeckSysteme
             deck.AddToDiscard(buffer);
             SelectedCards.Clear();
 
-            FillHand();
+            //FillHand();
         }
 
         private void RemoveFromHand(List<CardInstance> cards)

@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Core.DeckSysteme;
 using Core.Phase;
@@ -35,6 +36,11 @@ namespace Core.DeckSysteme.UI
 
         private Tween chipsPunch;
         private Tween multPunch;
+
+        private void Awake()
+        {
+	        resolver = new TurnResolver();
+        }
 
         private void OnEnable()
         {

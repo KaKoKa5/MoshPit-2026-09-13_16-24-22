@@ -28,6 +28,11 @@ namespace Core.DeckSysteme
 
 		private void OnCardAdded(CardInstance card, int slotIndex)
 		{
+			if (slotIndex < 0 || slotIndex >= fieldSlots.Length)
+			{
+				Debug.LogError($"[PlayedField] Index hors limites : {slotIndex}. Nombre de slots disponibles : {fieldSlots.Length}");
+				return;
+			}
 			RectTransform slot = fieldSlots[slotIndex];
 			CardView view = CardPool.Instance.Get(slot);
 			
