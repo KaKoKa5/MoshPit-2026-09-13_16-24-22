@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Utilities;
 using GamePlay.Card;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Core.DeckSysteme
 {

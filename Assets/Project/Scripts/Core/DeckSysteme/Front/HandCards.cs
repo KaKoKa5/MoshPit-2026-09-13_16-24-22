@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.DeckSysteme.Cards;
 using Core.Utilities;
@@ -12,11 +13,13 @@ namespace Core.DeckSysteme
         [SerializeField] private RectTransform[] handSlots;
         [SerializeField] private float maxSwapDistance = 500f;
         [SerializeField] private RectTransform deckOrigin;
-
-        private CardView[] slotViews;
-
+        
+        public event Action SelectionPlayed;
+        
+        public bool InputEnabled { get; set; } = true;
         public Hand Hand { get; private set; }
 
+        private CardView[] slotViews;
         private void Awake()
         {
             slotViews = new CardView[handSlots.Length];
@@ -148,6 +151,8 @@ namespace Core.DeckSysteme
 
         public void PlaySelection()
         {
+	        if (!InputEnabled)
+		        return;
 	        if (playedField.Field.PlayedCards.Count >= GameMetrix.MaxSelectable)
 		        return;
             
@@ -156,9 +161,16 @@ namespace Core.DeckSysteme
             if (orderedSelection == null)
 				return;
 	        playedField.PlayCards(orderedSelection);
+	        SelectionPlayed?.Invoke();
         }
 
-        public void DiscardSelection() => Hand.DiscardSelection();
+        public void DiscardSelection()
+        {
+	        if (!InputEnabled)
+		        return;
+	        
+	        Hand.DiscardSelection();
+        }
         
         private Vector2 GetLocalPositionInSlot(RectTransform source, RectTransform targetParent)
         {

@@ -1,4 +1,3 @@
-using System.IO;
 using Core.DeckSysteme;
 using GamePlay.Card;
 using UnityEditor;
@@ -8,11 +7,22 @@ namespace Core.EditorTools
 {
     public class CardCreatorWindow : EditorWindow
     {
-        private CardInfoData _editableCard;
-        private SerializedObject _serializedCard;
-        private DeckManager _targetDeckManager;
-        private string _saveFolder = "Assets/Project/Data/Cards";
-        private Vector2 _scroll;
+        private enum Mode { Card, Combo }
+        private Mode mode = Mode.Card;
+
+        // --- Carte ---
+        private CardInfoData editableCard;
+        private SerializedObject serializedCard;
+        private MonoBehaviour targetDeckOwner;
+        private string saveFolder = "Assets/Project/Data/Cards";
+
+        // --- Combo ---
+        private ComboData editableCombo;
+        private SerializedObject serializedCombo;
+        private ComboLibrary targetComboLibrary;
+        private string comboSaveFolder = "Assets/Project/Data/Combos";
+
+        private Vector2 scroll;
 
         // --- Thème JARVIS ---
         private static readonly Color BackgroundColor = new Color(0.04f, 0.06f, 0.08f);
@@ -20,16 +30,15 @@ namespace Core.EditorTools
         private static readonly Color AccentOrange = new Color(1f, 0.55f, 0.1f);
         private static readonly Color PanelColor = new Color(0.07f, 0.1f, 0.12f);
 
-        private GUIStyle _titleStyle;
-        private GUIStyle _sectionStyle;
-        private GUIStyle _panelStyle;
-        private GUIStyle _monoLabelStyle;
-        private GUIStyle _buttonStyle;
-        private Texture2D _panelTexture;
-        private Texture2D _lineTexture;
+        private GUIStyle titleStyle;
+        private GUIStyle sectionStyle;
+        private GUIStyle panelStyle;
+        private GUIStyle monoLabelStyle;
+        private GUIStyle buttonStyle;
+        private Texture2D panelTexture;
 
-        private double _lastRepaintTime;
-        private float _pulse;
+        private double lastRepaintTime;
+        private float pulse;
 
         [MenuItem("Tools/Mosh Pit/Card Creator")]
         public static void Open()
@@ -41,6 +50,7 @@ namespace Core.EditorTools
         private void OnEnable()
         {
             CreateNewCardInstance();
+            CreateNewComboInstance();
             EditorApplication.update += OnEditorUpdate;
         }
 
@@ -51,56 +61,58 @@ namespace Core.EditorTools
 
         private void OnEditorUpdate()
         {
-            // Pulse lent façon arc reactor, ne redessine que ~20x/sec pour rester léger
-            if (EditorApplication.timeSinceStartup - _lastRepaintTime < 0.05d)
+            if (EditorApplication.timeSinceStartup - lastRepaintTime < 0.05d)
                 return;
 
-            _lastRepaintTime = EditorApplication.timeSinceStartup;
-            _pulse = (Mathf.Sin((float)EditorApplication.timeSinceStartup * 3f) + 1f) * 0.5f;
+            lastRepaintTime = EditorApplication.timeSinceStartup;
+            pulse = (Mathf.Sin((float)EditorApplication.timeSinceStartup * 3f) + 1f) * 0.5f;
             Repaint();
         }
 
         private void CreateNewCardInstance()
         {
-            _editableCard = CreateInstance<CardInfoData>();
-            _serializedCard = new SerializedObject(_editableCard);
+            editableCard = CreateInstance<CardInfoData>();
+            serializedCard = new SerializedObject(editableCard);
+        }
+
+        private void CreateNewComboInstance()
+        {
+            editableCombo = CreateInstance<ComboData>();
+            serializedCombo = new SerializedObject(editableCombo);
         }
 
         private void InitStyles()
         {
-            if (_panelTexture == null)
-                _panelTexture = MakeTexture(PanelColor);
+            if (panelTexture == null)
+                panelTexture = MakeTexture(PanelColor);
 
-            if (_lineTexture == null)
-                _lineTexture = MakeTexture(AccentCyan);
-
-            _titleStyle = new GUIStyle(EditorStyles.boldLabel)
+            titleStyle = new GUIStyle(EditorStyles.boldLabel)
             {
                 fontSize = 18,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = AccentCyan }
             };
 
-            _sectionStyle = new GUIStyle(EditorStyles.boldLabel)
+            sectionStyle = new GUIStyle(EditorStyles.boldLabel)
             {
                 fontSize = 11,
                 normal = { textColor = AccentOrange }
             };
 
-            _monoLabelStyle = new GUIStyle(EditorStyles.label)
+            monoLabelStyle = new GUIStyle(EditorStyles.label)
             {
                 font = EditorStyles.miniLabel.font,
                 normal = { textColor = new Color(0.6f, 0.9f, 1f) }
             };
 
-            _panelStyle = new GUIStyle
+            panelStyle = new GUIStyle
             {
-                normal = { background = _panelTexture },
+                normal = { background = panelTexture },
                 padding = new RectOffset(10, 10, 10, 10),
                 margin = new RectOffset(0, 0, 4, 4)
             };
 
-            _buttonStyle = new GUIStyle(GUI.skin.button)
+            buttonStyle = new GUIStyle(GUI.skin.button)
             {
                 fontSize = 12,
                 fontStyle = FontStyle.Bold,
@@ -118,36 +130,214 @@ namespace Core.EditorTools
 
         private void OnGUI()
         {
-            if (_editableCard == null || _serializedCard == null || _serializedCard.targetObject == null)
-            {
-	            CreateNewCardInstance();
-            }
+            if (editableCard == null || serializedCard == null || serializedCard.targetObject == null)
+                CreateNewCardInstance();
+
+            if (editableCombo == null || serializedCombo == null || serializedCombo.targetObject == null)
+                CreateNewComboInstance();
 
             InitStyles();
 
-            // Fond global
             EditorGUI.DrawRect(new Rect(0, 0, position.width, position.height), BackgroundColor);
 
             DrawHeader();
             DrawSeparator();
-            
+            EditorGUILayout.Space(6);
 
-            EditorGUILayout.Space(4);
+            mode = (Mode)GUILayout.Toolbar((int)mode, new[] { "◈ CARTE", "◈ COMBO" });
+            EditorGUILayout.Space(8);
 
-            _targetDeckManager = (DeckManager)EditorGUILayout.ObjectField(
-                new GUIContent("⛓ DECK MANAGER CIBLE"), _targetDeckManager, typeof(DeckManager), true);
+            if (mode == Mode.Card)
+                DrawCardMode();
+            else
+                DrawComboMode();
+        }
 
-            _saveFolder = EditorGUILayout.TextField("📁 DOSSIER", _saveFolder);
+        // ============== MODE CARTE ==============
+
+        private void DrawCardMode()
+        {
+            EditorGUILayout.HelpBox("Cible un DeckManager (deck joueur) ou un EnemyController (deck ennemi).", MessageType.None);
+
+            Object newTarget = EditorGUILayout.ObjectField(
+                new GUIContent("⛓ DECK CIBLE"), targetDeckOwner, typeof(MonoBehaviour), true);
+
+            targetDeckOwner = ValidateDeckTarget(newTarget);
+
+            saveFolder = EditorGUILayout.TextField("📁 DOSSIER", saveFolder);
 
             EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("◈ DONNÉES DE LA CARTE", _sectionStyle);
+            EditorGUILayout.LabelField("◈ DONNÉES DE LA CARTE", sectionStyle);
             DrawSeparator(AccentOrange, 1);
 
-            EditorGUILayout.BeginVertical(_panelStyle);
-            _scroll = EditorGUILayout.BeginScrollView(_scroll);
-            _serializedCard.Update();
+            EditorGUILayout.BeginVertical(panelStyle);
+            scroll = EditorGUILayout.BeginScrollView(scroll);
+            serializedCard.Update();
+            DrawAllProperties(serializedCard);
+            serializedCard.ApplyModifiedProperties();
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndVertical();
 
-            SerializedProperty prop = _serializedCard.GetIterator();
+            EditorGUILayout.Space(10);
+
+            Color prevColor = GUI.backgroundColor;
+            GUI.backgroundColor = AccentCyan;
+
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(saveFolder)))
+            {
+                if (GUILayout.Button("⚡ FORGER LA CARTE", buttonStyle))
+                    CreateAndAssignCard();
+            }
+
+            GUI.backgroundColor = prevColor;
+
+            EditorGUILayout.Space(4);
+            string status = targetDeckOwner != null ? $"TARGET LOCKED // {targetDeckOwner.GetType().Name}" : "NO TARGET";
+            EditorGUILayout.LabelField($"SYSTEM READY // {status}", monoLabelStyle);
+        }
+
+        private static MonoBehaviour ValidateDeckTarget(Object candidate)
+        {
+            if (candidate == null)
+                return null;
+
+            var behaviour = candidate as MonoBehaviour;
+
+            if (behaviour == null)
+                return null;
+
+            SerializedObject so = new SerializedObject(behaviour);
+            SerializedProperty deckProp = so.FindProperty("masterDeck");
+
+            if (deckProp == null)
+            {
+                Debug.LogWarning($"[Card Forge] {behaviour.GetType().Name} n'a pas de champ 'masterDeck', cible ignorée.");
+                return null;
+            }
+
+            return behaviour;
+        }
+
+        private void CreateAndAssignCard()
+        {
+            EnsureFolderExists(saveFolder);
+
+            string fileName = string.IsNullOrEmpty(editableCard.cardName) ? "NewCard" : editableCard.cardName;
+            string path = AssetDatabase.GenerateUniqueAssetPath($"{saveFolder}/{fileName}.asset");
+
+            AssetDatabase.CreateAsset(editableCard, path);
+            AssetDatabase.SaveAssets();
+
+            if (targetDeckOwner != null)
+                AddCardToDeck(targetDeckOwner, editableCard);
+            else
+                Debug.LogWarning("Aucune cible assignée : la carte a été créée mais pas ajoutée à un deck.");
+
+            CreateNewCardInstance();
+            Repaint();
+        }
+
+        private void AddCardToDeck(MonoBehaviour owner, CardInfoData card)
+        {
+            SerializedObject so = new SerializedObject(owner);
+            SerializedProperty masterDeckProp = so.FindProperty("masterDeck");
+
+            if (masterDeckProp == null)
+            {
+                Debug.LogError($"Champ masterDeck introuvable sur {owner.GetType().Name}.");
+                return;
+            }
+
+            masterDeckProp.arraySize++;
+            masterDeckProp.GetArrayElementAtIndex(masterDeckProp.arraySize - 1).objectReferenceValue = card;
+            so.ApplyModifiedProperties();
+
+            EditorUtility.SetDirty(owner);
+        }
+
+        // ============== MODE COMBO ==============
+
+        private void DrawComboMode()
+        {
+            EditorGUILayout.HelpBox("Cible une ComboLibrary pour y ajouter le combo créé.", MessageType.None);
+
+            targetComboLibrary = (ComboLibrary)EditorGUILayout.ObjectField(
+                new GUIContent("⛓ LIBRAIRIE CIBLE"), targetComboLibrary, typeof(ComboLibrary), true);
+
+            comboSaveFolder = EditorGUILayout.TextField("📁 DOSSIER", comboSaveFolder);
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("◈ DONNÉES DU COMBO", sectionStyle);
+            DrawSeparator(AccentOrange, 1);
+
+            EditorGUILayout.BeginVertical(panelStyle);
+            scroll = EditorGUILayout.BeginScrollView(scroll);
+            serializedCombo.Update();
+            DrawAllProperties(serializedCombo);
+            serializedCombo.ApplyModifiedProperties();
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space(10);
+
+            Color prevColor = GUI.backgroundColor;
+            GUI.backgroundColor = AccentCyan;
+
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(comboSaveFolder)))
+            {
+                if (GUILayout.Button("⚡ FORGER LE COMBO", buttonStyle))
+                    CreateAndAssignCombo();
+            }
+
+            GUI.backgroundColor = prevColor;
+
+            EditorGUILayout.Space(4);
+            string status = targetComboLibrary != null ? "TARGET LOCKED // ComboLibrary" : "NO TARGET";
+            EditorGUILayout.LabelField($"SYSTEM READY // {status}", monoLabelStyle);
+        }
+
+        private void CreateAndAssignCombo()
+        {
+            EnsureFolderExists(comboSaveFolder);
+
+            string fileName = string.IsNullOrEmpty(editableCombo.ComboName) ? "NewCombo" : editableCombo.ComboName;
+            string path = AssetDatabase.GenerateUniqueAssetPath($"{comboSaveFolder}/{fileName}.asset");
+
+            AssetDatabase.CreateAsset(editableCombo, path);
+            AssetDatabase.SaveAssets();
+
+            if (targetComboLibrary != null)
+                AddComboToLibrary(targetComboLibrary, editableCombo);
+            else
+                Debug.LogWarning("Aucune librairie assignée : le combo a été créé mais pas ajouté.");
+
+            CreateNewComboInstance();
+            Repaint();
+        }
+
+        private void AddComboToLibrary(ComboLibrary library, ComboData combo)
+        {
+            SerializedObject so = new SerializedObject(library);
+            SerializedProperty combosProp = so.FindProperty("combos");
+
+            if (combosProp == null)
+            {
+                Debug.LogError("Champ 'combos' introuvable sur ComboLibrary.");
+                return;
+            }
+
+            combosProp.arraySize++;
+            combosProp.GetArrayElementAtIndex(combosProp.arraySize - 1).objectReferenceValue = combo;
+            so.ApplyModifiedProperties();
+
+            EditorUtility.SetDirty(library);
+        }
+
+        // ============== COMMUN ==============
+
+        private static void DrawAllProperties(SerializedObject so)
+        {
+            SerializedProperty prop = so.GetIterator();
             bool enterChildren = true;
             while (prop.NextVisible(enterChildren))
             {
@@ -157,28 +347,6 @@ namespace Core.EditorTools
 
                 EditorGUILayout.PropertyField(prop, true);
             }
-
-            _serializedCard.ApplyModifiedProperties();
-            EditorGUILayout.EndScrollView();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.Space(10);
-
-            Color prevColor = GUI.backgroundColor;
-            GUI.backgroundColor = AccentCyan;
-
-            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_saveFolder)))
-            {
-                if (GUILayout.Button("⚡ FORGER LA CARTE", _buttonStyle))
-                {
-                    CreateAndAssign();
-                }
-            }
-
-            GUI.backgroundColor = prevColor;
-
-            EditorGUILayout.Space(4);
-            EditorGUILayout.LabelField($"SYSTEM READY // {(_targetDeckManager != null ? "TARGET LOCKED" : "NO TARGET")}", _monoLabelStyle);
         }
 
         private void DrawHeader()
@@ -186,9 +354,9 @@ namespace Core.EditorTools
             EditorGUILayout.Space(6);
 
             Rect rect = EditorGUILayout.GetControlRect(false, 26);
-            Color glow = Color.Lerp(AccentCyan, Color.white, _pulse * 0.4f);
+            Color glow = Color.Lerp(AccentCyan, Color.white, pulse * 0.4f);
 
-            GUIStyle glowStyle = new GUIStyle(_titleStyle) { normal = { textColor = glow } };
+            GUIStyle glowStyle = new GUIStyle(titleStyle) { normal = { textColor = glow } };
             EditorGUI.LabelField(rect, "◈ CARD FORGE — J.A.R.V.I.S. PROTOCOL", glowStyle);
         }
 
@@ -196,47 +364,6 @@ namespace Core.EditorTools
         {
             Rect rect = EditorGUILayout.GetControlRect(false, height);
             EditorGUI.DrawRect(rect, color ?? AccentCyan);
-        }
-
-        private void CreateAndAssign()
-        {
-	        EnsureFolderExists(_saveFolder);
-
-	        string fileName = string.IsNullOrEmpty(_editableCard.cardName) ? "NewCard" : _editableCard.cardName;
-	        string path = AssetDatabase.GenerateUniqueAssetPath($"{_saveFolder}/{fileName}.asset");
-
-	        AssetDatabase.CreateAsset(_editableCard, path);
-	        AssetDatabase.SaveAssets();
-
-	        if (_targetDeckManager != null)
-	        {
-		        AddCardToDeckManager(_targetDeckManager, _editableCard);
-	        }
-	        else
-	        {
-		        Debug.LogWarning("Aucun Deck Manager assigné : la carte a été créée mais pas ajoutée à un deck.");
-	        }
-
-	        CreateNewCardInstance();
-	        Repaint();
-        }
-
-        private void AddCardToDeckManager(DeckManager deckManager, CardInfoData card)
-        {
-            SerializedObject so = new SerializedObject(deckManager);
-            SerializedProperty masterDeckProp = so.FindProperty("<MasterDeck>k__BackingField");
-
-            if (masterDeckProp == null)
-            {
-                Debug.LogError("Champ MasterDeck introuvable sur DeckManager (vérifie le nom de la propriété).");
-                return;
-            }
-
-            masterDeckProp.arraySize++;
-            masterDeckProp.GetArrayElementAtIndex(masterDeckProp.arraySize - 1).objectReferenceValue = card;
-            so.ApplyModifiedProperties();
-
-            EditorUtility.SetDirty(deckManager);
         }
 
         private static void EnsureFolderExists(string folderPath)
@@ -251,9 +378,8 @@ namespace Core.EditorTools
             {
                 string nextPath = $"{currentPath}/{parts[i]}";
                 if (!AssetDatabase.IsValidFolder(nextPath))
-                {
                     AssetDatabase.CreateFolder(currentPath, parts[i]);
-                }
+
                 currentPath = nextPath;
             }
         }

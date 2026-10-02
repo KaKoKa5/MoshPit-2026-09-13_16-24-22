@@ -8,7 +8,7 @@ namespace Core.DeckSysteme.Enemy
 {
     public class EnemyController : MonoBehaviour
     {
-	    [SerializeField] private PlayedField enemyField;
+	    [field : SerializeField] public PlayedField EnemyField { get;private set; }
 	    [SerializeField] private List<CardInfoData> masterDeck = new List<CardInfoData>();
 	    [SerializeField] private int cardsToPlay = GameMetrix.MaxSelectable;
 	    public Deck Deck { get; private set; }
@@ -40,7 +40,7 @@ namespace Core.DeckSysteme.Enemy
 			    drawBuffer.Add(drawn);
 		    }
 
-		    enemyField.PlayCards(drawBuffer);
+		    EnemyField.PlayCards(drawBuffer);
 	    }
     }
 }

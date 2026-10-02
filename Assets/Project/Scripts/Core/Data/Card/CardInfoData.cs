@@ -1,3 +1,4 @@
+using Core.DeckSysteme.Cards;
 using UnityEngine;
 
 namespace GamePlay.Card
@@ -14,6 +15,8 @@ namespace GamePlay.Card
 	    [field:SerializeField] private CardStyle style;
 	    [field:SerializeField] private CardRarity rarity;
 	    [field:SerializeField] private CardType type;
-	    [field:SerializeField, Range(1,8)] public int baseValue;  
+	    [field:SerializeField, Range(1,8)] public int baseValue;
+	    public CardMoveType MoveType { get; set; }
+	    public Discipline Discipline;
     }
 }
